@@ -1,0 +1,47 @@
+services:
+    api:
+        image: 'golang:1.21'
+        depends_on:
+            - postgres
+        working_dir: /go/src/github.com/joesantos418/integration-test-example-docker-go
+        volumes:
+            - './:/go/src/github.com/joesantos418/integration-test-example-docker-go'
+        environment:
+            HTTP_PORT: ':80'
+        entrypoint:
+            - go
+            - run
+            - /go/src/github.com/joesantos418/integration-test-example-docker-go/cmd/api
+
+    postgres:
+        image: postgres:16.0
+        volumes:
+            - './db-scripts:/db-scripts'
+        environment:
+            POSTGRES_DB: 'api_db'
+            POSTGRES_USER: 'joesantos418'
+            POSTGRES_PASSWORD: 'pgpass'
+
+    hurl:
+        image: 'ghcr.io/orange-opensource/hurl:4.1.0'
+        depends_on:
+            - api
+        working_dir: /api-tests/
+        volumes:
+            - './hurl-tests:/api-tests'
+        entrypoint:
+            - tail
+            - -f
+            - /dev/null
+
+    integration-tests:
+        image: 'golang:1.21'
+        depends_on:
+            - hurl
+        working_dir: /go/src/github.com/joesantos418/integration-test-example-docker-go
+        volumes:
+            - './:/go/src/github.com/joesantos418/integration-test-example-docker-go'
+        entrypoint:
+            - tail
+            - -f
+            - /dev/null

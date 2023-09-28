@@ -19,8 +19,12 @@ hurl-tests:
 	docker compose exec hurl hurl --test /api-tests/method_not_allowed.hurl
 	docker compose exec hurl hurl --test /api-tests/valid_request.hurl
 
-# integration-tests: SHELL:=/bin/bash
 integration-tests: down up create-tables hurl-tests
+	docker compose exec integration-tests go install github.com/jstemmer/go-junit-report/v2@latest
+	@mkdir -p test-results/api
+	docker compose exec integration-tests ./integration-test.sh
+
+ci-integration-tests: up create-tables hurl-tests
 	docker compose exec integration-tests go install github.com/jstemmer/go-junit-report/v2@latest
 	@mkdir -p test-results/api
 	docker compose exec integration-tests ./integration-test.sh
